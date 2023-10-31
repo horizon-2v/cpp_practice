@@ -1,9 +1,9 @@
 #include <iostream>
+
 int main(int argc, char const *argv[])
 {
-    int val = 42;
-    int *p = nullptr;
-    int *&r = p;
-    r = &val;
-    std::cout<< *r << std::endl;
+    using namespace std;
+    int val = 1;
+    const int &r = val;  
+    cout << r << endl;  
 }
