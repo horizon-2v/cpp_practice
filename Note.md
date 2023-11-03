@@ -165,4 +165,28 @@ p是底层const，而q检查的是顶层const。<br>
 
 ***
 
+## typedef 关键字
+typedef是类型别名，为类型起一个同义词，typedef对类型定义别名的语法为：
+```C++
+typedef double wages;
+typedef wages base, *p;
+```
+C++11还规定了一种新方法：别名声明，来定义类型的别名：
+```C++
+using SI = Sales_item;
+```
+将等式左边的名字规定成等式右边的别名。
+
+### const+类型别名
+以下面这段代码为例：
+```C++
+typedef char *pstring;
+const pstring ctr = 0;
+``` 
+const修饰的是整个pstring，也就是说pstring是常量，所以ctr是一个指向char类型的常量指针（顶层const）
+容易误导的是，如果将pstring代入到代码中，`const char *pstring`看起来像是底层const，因此不能习惯于将别名代入回代码来研究其含义。
+
+### auto 关键字
+
+
 
