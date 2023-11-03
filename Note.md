@@ -186,7 +186,58 @@ const pstring ctr = 0;
 const修饰的是整个pstring，也就是说pstring是常量，所以ctr是一个指向char类型的常量指针（顶层const）
 容易误导的是，如果将pstring代入到代码中，`const char *pstring`看起来像是底层const，因此不能习惯于将别名代入回代码来研究其含义。
 
-### auto 关键字
+## auto 关键字
+auto关键字可以让编译器替我们去分析表达式所属的类型，auto变量的定义必须有初始值。使用auto在一条语句中声明多个变量的时候，所有变量的初始基本数据类型必须一样。
 
+### auto和引用
+用auto做类型时，如果用引用来初始化，则编译器会根据引用的对象来推断auto的类型：
+```C++
+int i = 0, &r = i;
+auto a = r;
+```
+上述代码中a的属性为int，而不是int&。因为引用不是对象，而只是别名，因此此处相当于用i的值来推断a的类型，因此是int。
 
+### const和auto
+auto关键字会忽略初始值的顶层const属性，但是会保留其底层const，比如当初始值是一个指向常量的指针时：
+```C++
+const int ci = i, &cr = ci;
+auto b = ci; //b是int类型，忽略了顶层const
+auto d = &i; //i是int，用i的地址来推d的类型，所以是int*
+auto e = &ci; //ci是const int, 用ci的地址来推e，保留底层const属性，因此是const int*
+```
+如果希望推断出的auto类型是顶层const，则需要手动添加const关键字：
+```C++
+const auto f = ci;//f的类型是const int
+```
+对于忽略顶层const这个点，在用auto生命指针和引用时值得注意，用于初始化的对象的顶层const属性仍然被保留：
+```C++
+const int ci = 1;
+auto a = ci; //auto为int，忽略了顶层const属性
+auto &r = ci, *p = &ci; 
+//此时给auto&和auto*推断属性，所以ci的const的顶层const属性得以保留
+```
+
+## decltype关键字
+decltype同样可以通过表达式来推断类型，但不会用该表达式的值来初始化变量。decltype和auto在使用上有些许不同，decltype使用的表达式是否是一个变量会产生不同的结果：
+1. 当表达式是变量时<br>
+decltype将返回该变量的类型，顶层const也会保留，引用也会直接返回引用类型本身（而不是返回被引用的类型）
+    ```C++
+    const int ci = 0, &cj = ci;
+    decltype(ci) x = 0;//x的类型是const int，保留了顶层属性
+    decltype(cj) y = x;//y的类型是const int&，返回的是引用类型本身而不是被引用的对象 
+    ```
+    引用大部分时候都是作为别名存在，即实际上相当于操作被引用的对象，只有在decltype里是例外，其返回的是引用自身。
+2. 当表达式不是变量时<br>
+decltype会返回该表达式的结果类型。值得注意的是*p这种解引用操作是一个表达式，其返回值是对对象的引用。
+    ```C++
+    int i = 42, *p = &i, &r = i;
+    decltype(r + 1) b;//r本身是变量，但是r+1是表达式，因此返回r+1的结果类型int
+    decltype(*p) c;//错误，因为*p是表达式而不是变量，所以返回*p的结果类型int*
+    ```
+    另外特别值得注意的点是，如果变量名被加了括号，编译器就会把他当做是一个表达式而非变量来处理，该类表达式的结果引用类型：
+    ```C++
+    decltype((i)) d;//(i)被看成是表达式，返回值类型是int&
+    decltype(i) e;//i是变量，所以返回int类型
+    ```
+    牢记decltype((variable))的结果永远是引用，但decltype(variable)只有在variable自身是引用的时候结果才是引用类型。
 
