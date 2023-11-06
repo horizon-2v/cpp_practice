@@ -17,8 +17,7 @@ cin >> num2
 cout << num1
 cout << num2
 ```
-
-***
+当输入一行以空格隔开时，直到按下回车为止，程序处于一个等待输入的状态。按下回车后，会将这一行输入全部通过cin写入变量，但是遇到第一个空格之后，第一个cin >> var的语句就结束了，此时会返回cin，之后空格之后的内容还在cin里，所以再一次遇到cin >> var2的时候，又会将剩下的内容写入变量，直到遇到空格或结束为止，以此类推。`cin >> var1 >> var2`的本质也是上述过程，只不过写在一行了而已。
 
 ## bit 和 Byte
 ### bit 
@@ -230,4 +229,62 @@ decltype会返回该表达式的结果类型。值得注意的是*p这种解引�
     decltype(i) e;//i是变量，所以返回int类型
     ```
     牢记decltype((variable))的结果永远是引用，但decltype(variable)只有在variable自身是引用的时候结果才是引用类型。
+
+## C++版本的头文件
+C++标准库兼容了C语言的标准库，C语言的标准库一般都是name.h的形式，C++则将这些文件命名为cname，去掉.h后缀后在名字前添加字母c，表明这是一个属于C标准库的头文件。因此cname和name.h两个文件是等价，从功能上讲用哪个都可以，但是一般建议在C++中使用C++版本的头文件。并且在cname的头文件中定义的名字从属于namespace std，而定义在name.h中的则不然。这样的好处是标准库中的名字总能在std中被找到，如果使用.h的话开发者就不得不时刻牢记哪些是从C语言继承来的，哪些又是C++所独有的。
+
+## 标准库string
+标准库类型string表示可变长的字符序列，使用string类型必须首先包含string头文件，作为标准库的一部分，string定义在命名空间std中，因此在使用前必须先包含：
+```C++
+#include <string>
+using std::string;
+```
+### 初始化方式
+可以用一个字面值或者string对象来对string进行初始化，也可以使用一个数字和一个字符来进行初始化，得到到结果是多个该字符构成的字符串：
+```C++
+string s1;
+string s2 = s1;
+string s2(s1);
+string s3 = "abcd";
+string s3("abcd");
+string s4(10, 'c'); //s4的值为ccccccccccc
+```
+
+### 对string的操作
+```C++
+cin >> s;
+cout << s;
+```
+输入输出流和其他基本类型一样，可以从输入流写入或者输出到输出流。
+```C++
+getline(cin, s);
+```
+getline函数可以一次读取一行的数据写入字符串，包括空格，这样就可以将空格写入到string当中去，但最后的回车符没有写进string，因此输出时如果要换行还是需要手动加上换行符。getline的返回值就是参数中的cin，因此可以将getline函数直接作为while的判断条件，就像while(cin >> s)一样。
+```C++
+s.empty();
+s.size();
+```
+empty和size函数用来判断字符串是否为空以及返回字符串的长度。
+
+### string::size_type类型
+s.size()的返回值并不是unsigned或者int，而是string::size_type，这个类型是一个无符号的数，按理说用于存放s.size()函数的返回值的变量都应该是string::size_type类型。在C++11引入auto和decltype之后，可以更加方便的使用这种类型，如：
+```C++
+auto len = s.size();
+decltype(s.size()) len;
+```
+由于size_type是无符号数，因此如果在表达式中混用了带符号数与无符号数则可能发生错误，因此如果要用size_type进行计算的话要特别注意参与运算的变量类型。
+
+### string的比较
+在两个string对象进行比较时：
+1. 如果两个string对象在某些位置上的字符不相同，则第一对不相同的字符的比较结果将作为两个string对象的比较结果，两个字符的比较依据大小写敏感的字典顺序。
+2. 如果两个string对象长度不同，但是一个string是另一个的子串，则短的那个小于长的string，如果长度也相同则认为两个string相等。
+
+### 给string的赋值
+允许把一个string赋值给另一个string，也允许把一个字面值赋值给string。但需要注意的是，出于一些历史原因以及为了和C兼容，**C++中的字符串字面值和string并不是同一种类型**，因此无论是用字符串字面值给string赋值还是通过加法运算来拼接字符串，本质上在其中都隐含了从字符串字面值到string的类型转换。在进行字符串拼接时，必须保证加号两侧至少要有一个string对线，这样才能将字面值转化为string类型后进行加法运算。如果加号两侧都是字符串字面值则会发生错误，因为字符串字面值这种类型不能进行加法运算。举例说明：
+```C++
+string s4 = s1 + ", ";//正确，","被转化成了string后进行加法操作
+string s5 = "hello" + ", ";//错误，字符串字面值不能进行加法操作
+string s6 = s1 + ", " + "world";//正确，s1和","运算后返回string继续和"world"运算
+string s7 = "hello" + ", " + s2;//错误，"hello" + ", "已经出现错误
+```
 
