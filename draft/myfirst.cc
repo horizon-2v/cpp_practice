@@ -1,9 +1,11 @@
 #include <iostream>
+#include <string>
 
 int main(int argc, char const *argv[])
 {
     using namespace std;
-    int val = 1;
-    const int &r = val;  
-    cout << r << endl;  
+    string s("Abcd");
+    string s1("1BCD");
+    cout << (s > s1 ? s : s1) << endl;
+    return 0;
 }
