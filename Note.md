@@ -566,4 +566,31 @@ n = sizeof n;
 5. sizeof的返回值是常量表达式，因此可以用来声明数组维度
 6. C++11允许使用`Sale_data::revenue`这样的形式在sizeof中获取类成员的大小，因为获取类成员的大小无需实例化对象，sizeof也不会去运算表达式的结果
 
+## 逗号运算符
+逗号运算符有两个运算对象，按照从左往右的顺序依次求值。首先对左侧表达式求值，然后将求值结果丢弃掉，逗号运算符真正的结果是右侧的表达式。逗号运算符主要用于for循环中：
+```C++
+vector<int>::size_type cnt = ivec.size();
+for(vector<int>::size_type ix = 0; ix != ivec.size(); ++ix, --cnt)
+    ivec[ix] = cnt;
+```
+
+## 强制类型转换
+C++中的强制类型转换有4种：`static_cast, dynamic_cast, const_cast, reinterpret_cast`，格式是cast-name<type>(expression)<br>
+其中最常用的是static_cast<br>
+const_cast用于改变对象的const属性，去掉const属性之后，如果对象本身不是常量，可以使用强制类型转换后的对象修改对象的值，但如果对象本身是常量则会产生未定义的后果,const_cast常常用于函数重载的上下文：
+```C++
+const char *cp;
+char *q = static_cast<char*>(cp);
+```
+reinterpret_cast通常为运算对象的位模式提供较低层次上的重新解释。每太看懂，感觉大概意思就是可以强行改变类型，但类型的本质没有改变，只是让编译器认为改变了属性，因此对改变类型后的对象按照新类型进行运算可能会出现问题，因此尽量不要使用这种方式<br>
+C语言中的强制类型转换的语法是：
+```C++
+int (var);
+(int) var;
+```
+使用C风格的强制类型转换时，如果转换合法，将会执行和static_cast和const_cast相同的操作，如果转换不合法，将会执行reinterpret_cast操作。C风格的强制类型转换和C++版本的在效果上没有什么区别，但C风格的强制类型转换从表现形式上说不是很清晰明了。
+
+
+
+
 
