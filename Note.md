@@ -590,7 +590,73 @@ int (var);
 ```
 使用C风格的强制类型转换时，如果转换合法，将会执行和static_cast和const_cast相同的操作，如果转换不合法，将会执行reinterpret_cast操作。C风格的强制类型转换和C++版本的在效果上没有什么区别，但C风格的强制类型转换从表现形式上说不是很清晰明了。
 
+## try-catch异常处理
+### throw 关键字
+程序检测异常部分使用throw关键字，throw之后紧跟一个表达式，该表达式就是抛出的异常类型：
+```C++
+if(item1_isbn() != item2_isbn())
+    throw runtime_error("Data must refer to same ISBN");
+cout << item1 + item2 << endl;
+```
+### try-catch关键字
+try关键字之后紧跟一个块，在try语句块之后是多个catch语句块，catch用于捕获异常，根据抛出异常的类型来决定执行哪一个catch语句块：
+```C++
+#include <iostream>
+#include <stdexcept>
+using namespace std;
 
+while(cin >> item1 >> item2){
+    try {
+        if(item1_isbn() != item2_isbn())
+            throw runtime_error("Data must refer to same ISBN");
+        cout << item1 + item2 << endl;
+    } catch(runtime_error err){
+        cout << err.what() << "\nTry Again? Enter y or n" << endl;
+        char c;
+        cin << c；
+        if(!cin || c == 'n')
+            break;
+    }
+}
+```
+异常被抛出的时候，如果在该函数内没有找到相应的catch语句，异常会继续向上抛出，在调用该函数的函数内继续寻找能catch该异常的语句。如果到最终都没有找到能处理该异常的函数，程序将转到名为terminate的标准库函数，一般情况下执行该函数会导致程序非正常退出。如果没有try语句，那也就意味着没有与之搭配的catch语句，那么如果抛出了异常也会被terminate函数终止。
 
+### 标准异常
+C++标准库定义了一组异常类：
+1. exception类，定义在exception头文件中，这个类只报告异常发生，没有任何额外信息，是最基本的异常类
+2. stdexcept头文件定义的几种常用类:
+    | Exception Name  | 描述                             |
+    | --------------- | -------------------------------- |
+    | exception       | 最普通的问题                      |
+    | runtime_error   | 只有在运行时才能检测出来的问题      | 
+    | range_error     | 结果超出了有意义的范围             |
+    | overflow_error  | 运行错误：计算上溢                 |
+    | underflow_error | 运行错误：计算下溢                 |
+    | logic_error     | 程序逻辑错误                      |
+    | domain_error    | 逻辑错误：参数对应结果不存在        |
+    | invalid_argument| 逻辑错误：无效参数                 |
+    | length_error    | 逻辑错误：创建超出类型最大长度的对象 |
+    | out_of_range    | 逻辑错误：使用一个超出有效范围的值   |
+    exception类只能默认初始化，其他类应该使用string或者C风格字符串来初始化，不允许使用默认初始化，创建类使用的字符串初始值应是报错信息
+3.  new头文件定义了bad_alloc异常类型<br>
+    bad_alloc异常类也只能使用默认初始化
+4.  type_info头文件定义了bad_cast异常类型
+    bad_cast异常类也只能使用默认初始化
+    
+    异常类只有名为what的成员函数，该函数没有参数，返回值是一个指向C风格字符串的const char*，该字符串提供关于异常的文本信息，也就是创建异常类所用的初始值，对于无初始值的异常类，what函数返回的内容由编译器决定
 
-
+    ## 函数
+    ### 静态变量
+    在函数内部定义的变量一般在函数调用结束后生命周期就结束了，但如果我们需要令一个函数内定义的变量在函数调用结束后依然存在，可以用static关键字将其定义为静态变量，静态变量在第一次被初始化时创建，在程序结束之后才会销毁：
+    ```C++
+    size_t count_calls(){
+        static size_t ctr = 0;
+        return ++ctr;
+    }
+    int main(){
+        for(size_t i = 0; i != 10; i++){
+            cout << count_call() << endl;
+        }
+        return 0;
+    }
+    ```
