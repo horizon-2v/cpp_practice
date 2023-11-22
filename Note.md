@@ -1,4 +1,26 @@
-## 对输入输出流的验证
+## 目录
+
+[1.输入输出流](#输入输出流)<br>
+[2.bit和byte](#bit-和-byte)<br>
+[3.初始化](#初始化)<br> 
+[4.指针和引用](#指针和引用)<br>
+[5.const关键字](#const关键字)<br>
+[6.typedef关键字](#typedef-关键字)<br>
+[7.auto关键字](#auto-关键字)<br>
+[8.decltype关键字](#decltype关键字)<br>
+[9.C++版本头文件](#c版本的头文件)<br>
+[10.标准库string](#标准库string)<br>
+[11.标准库vector](#标准库vector)<br>
+[12.迭代器](#迭代器)<br>
+[13.数组](#数组)<br>
+[14.sizeof运算符](#sizeof运算符)<br>
+[15.逗号运算](#逗号运算符)<br>
+[16.强制类型转换](#强制类型转换)<br>
+[17.try-catch异常处理](#try-catch异常处理)<br>
+[18.函数](#函数)<br>
+
+
+## 输入输出流
 ### 输入流的结束标志
 ```
 while(cin >> num1)
@@ -233,6 +255,7 @@ decltype会返回该表达式的结果类型。值得注意的是*p这种解引�
     decltype(i) e;//i是变量，所以返回int类型
     ```
     牢记decltype((variable))的结果永远是引用，但decltype(variable)只有在variable自身是引用的时候结果才是引用类型。
+
 
 ## C++版本的头文件
 C++标准库兼容了C语言的标准库，C语言的标准库一般都是name.h的形式，C++则将这些文件命名为cname，去掉.h后缀后在名字前添加字母c，表明这是一个属于C标准库的头文件。因此cname和name.h两个文件是等价，从功能上讲用哪个都可以，但是一般建议在C++中使用C++版本的头文件。并且在cname的头文件中定义的名字从属于namespace std，而定义在name.h中的则不然。这样的好处是标准库中的名字总能在std中被找到，如果使用.h的话开发者就不得不时刻牢记哪些是从C语言继承来的，哪些又是C++所独有的。
@@ -715,10 +738,64 @@ C++标准库定义了一组异常类：
         }
     }
     ```
-    对二维数组传参时也是一样，但是要注意对线元素的类型：
+    对二维数组传参时也是一样，但是要注意对象元素的类型：
     ```C++
     void print(int (*matrix)[10], int rowSize);
     void print(int matrix[][10], int rowSize);
     ```
     二维数组中存的数据类型应该是一维的数组，实际上每一个元素里存放的是指向一维数组的指针，所以第一种写法中第一个参数的类型是指向int[10]的指针，第二种写法看起来会更容易让人理解一些，但因为实际上传的是指针而非数组，因此两种写法各有利弊。
+
+    ### 可变形参
+    如果不能确定函数传入参数的数量，可以使用可变形参来传递数量可变的参数，传递可变形参有两种方法：initializer_list和省略符
+    #### initializer_list形参
+    initializer_list是一种类似于vector的容器，是一种模板类型，在定义initializer_list对象时必须说明表中所含元素的类型，与vector不同的地方在于，initializer_list内所有的元素都是常量，不能修改其元素的值。initializer_list初始化方法为：
+    ```C++
+    initializer_list<T> lst;
+    initializet_list<T> lst{a, b, c...};
+    ```
+    用一个initializer_list对象对另一个进行赋值或者拷贝时，并不会赋值容器中的元素，而是原始列表和副本共享元素。
+    ```C++
+    lst2(lst1);
+    lst2 = lst1;//不赋值元素，lst1和lst2共享元素
+    ```
+    initializer_list和vector一样，有迭代器也有`begin()`和`end()`方法：
+    ```C++
+    void error_msg(initializer_list<string> il){
+        for(auto it = il.begin(); it != il.end(); ++il){
+            std::cout << *it << " ";
+        }
+        std::cout << std::endl;
+    }
+    ```
+    如果想要对initializer_list形参传递一个值的序列，则需要把这些序列放在一个花括号内：
+    ```C++
+    //excepted和actual都是string类型
+    if(excepted != actual){
+        error_msg({"functionX", expected, actual});
+    }
+    else{
+        error_msg({"functionX","okay"});
+    }
+    ```
+    含有initializer_list形参的函数依然可以有其他的参数：
+    ```C++
+    using namespace std;
+    void err_msg(ErrCode e, initializer_list<string> il){
+        cout << e.msg() << ": ";
+        for(const auto &elem : il){
+            cout << elem << " ";
+        }
+        cout << endl;
+    }
+    ```
+    调用时也需要额外传入Errcode参数：
+    ```C++
+    if(excepted != actual){
+        err_msg(ErrCode(42), {"functionX", excepted, actual});
+    }
+    else{
+        err_msg(ErrCode(0), {"functionX", "okay"});
+    }
+    ```
+    #### 省略符形参
     
