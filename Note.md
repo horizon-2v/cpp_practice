@@ -944,3 +944,43 @@ auto f1(int) -> int (*)(int, int);
 ```C++
 decltype(func) *getFcn(int);
 ```
+## 类
+### 类中的const成员函数
+在类中可以定义const成员函数，其定义语法如下：
+```C++
+std::string isbn() const {return bookNo;}
+```
+const成员函数的实质意义是将类成员函数中的隐式的this形参声明为指向常量对象的指针。通常来说，this是一个指向类本身的常量指针，其本身为常量指针（顶层const），但其指向的类本身不是一个常量对象，声明为常量成员函数后，this指针指向常量对象（即具有底层const），将成员函数命名为常量成员函数有助于提高灵活性，因为不论是否是const对象都可以调用成员函数，但是代价是由于将指针变成了指向常量的指针，因此常量成员函数不能改变类内部成员的值，也就是对类内的所有成员只能读不能写。同时，常量对象，包括常量对象的指针和引用，都只能调用常量成员函数，否则本质上在将一个指向常量对象的指针指向了一个非常量。
+### 构造函数
+构造函数在没有自定义任何一个构造函数时才会自动生成默认构造函数，为了安全起见，建议在类内定义了每一个成员变量的前提下使用默认构造函数，如果编译器不支持在类内设置成员变量的初始化，则应该使用初始化列表的方式：
+```C++
+struct  Sales_data{
+    Sales_data() = default;
+    Sales_data(const std::string &s): bookNo(s) {}
+    Sales_data(const std::string &s, unsigned n, double p):
+            bookNo(s), units_sold(n), revenue(p*n){}
+    Sales_data(std::istream &is);
+}
+```
+当我们有自定义的构造函数，又希望可以使用默认构造函数的时候，可以在构造函数后面加上`= default`，代表希望执行默认构造函数，该关键字既可以和声明一起出现在类的内部，也可以作为定义出现在类的外部，和其他函数一样，如果出现在类内部则默认构造函数是内联的，在外部则不是内联的。在类外部定义构造函数的时候需要显示的表明属于哪一个类：
+```C++
+Sales_data::Sales_data(std::istream &is){
+    read(is, *this);
+}
+```
+### class和struct
+class和struct关键字在定义类的时候几乎没有区别，用哪一个都可以，唯一的区别在于默认访问权限。如果在第一个访问说明符之前定义成员，在struct中他们是public的，而在class中是private的，除此之外没有其他区别。
+### 友元
+类可以允许其他类或者函数访问他的非公有成员，方法是令其他类或者函数成为他的友元，友元用`friend`关键字定义：
+```C++
+class Sales_data{
+friend Sales_data add(const Sales_data&, const Sales_data&);
+friend std::istream &read(std::istream&, Sales_data&);
+friend std::ostream &print(std::ostream&, const Sales_data&);
+}
+//外部函数，在类内定义友元
+Sales_data add(const Sales_data&, const Sales_data&);
+std::istream &read(std::istream&, Sales_data&);
+std::ostream &print(std::ostream&, const Sales_data&);
+```
+友元只能在类的内部定义，且位置不限，友元并不是类的成员，也不受类的作用域的限制，但一般来讲建议在类定义的开始和结束之前集中声明友元。另外，友元的声明仅仅指定了访问权限，而并非一个真正的声明，因此如果我们希望类的用户能够调用某个友元函数，还需要在友元声明之外专门对函数进行一次声明。同时，为了使友元对类的用户可见，通常把友元的声明和类本身放置在同一个头文件中。
